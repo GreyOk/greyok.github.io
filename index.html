@@ -1,0 +1,43 @@
+---
+layout: default
+title: GreyOK
+---
+<div class="col">
+  <div class="container">
+    <div class="d-flex justify-content-center">
+      <div class="row">
+        <div class="col-md-5" style="margin-top:20px; margin-bottom:20px;">
+          <a href="./killswitchhelper">
+            <img id="killswitchhelperImage" src="images/killswitchhelper.svg" class="rounded float-left" alt="Kill Switch Helper Application" border="5">
+          </a>
+        </div>
+        <div class="col-md-5 offset-md-2" style="margin-top:20px; margin-bottom:20px;">
+          <img id="tutorialsImage" src="images/tutorials.svg" class="rounded float-right" alt="Tutorials" border="5">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript">
+var killswitchhelperImage = $("#killswitchhelperImage");
+var tutorialsImage = $("#tutorialsImage");
+
+killswitchhelperImage.hover (function (handlerInOut) {
+  if (handlerInOut.type == "mouseenter") {
+    $(this).attr ("src", "images/killswitchhelper_hover.svg");
+  }
+  else {
+    $(this).attr ("src", "images/killswitchhelper.svg");
+  }
+});
+
+tutorialsImage.hover (function (handlerInOut) {
+  if (handlerInOut.type == "mouseenter") {
+    $(this).attr ("src", "images/tutorials_hover.svg");
+  }
+  else {
+    $(this).attr ("src", "images/tutorials.svg");
+  }
+});
+</script>

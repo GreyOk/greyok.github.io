@@ -1,0 +1,204 @@
+---
+layout: default
+title: Kill Switch Helper
+---
+
+  <div class="row d-flex justify-content-center align-items-md-end" style='height:400px; background:rgba(255,255,255,0.4);
+    max-width: 101%; width: 101%;'>
+    <img src="images/killswitchhelper_screenshot_semi_cut.png" alt="..." class="img-fluid" style="height: 100%; padding-top: 10px; padding-bottom: 10px;">
+    <div class="col-md-5 align-self-center" >
+      <h1 class="display-4" style="font-family: CinzelDecorative-Regular;">Kill Switch Helper</h1>
+      <p class="lead">
+        A free and simple utility application for VPN users.
+      </p>
+      <a class="btn btn-outline-primary" href="#getIt" role="button">Get it</a>
+      <a class="btn btn-outline-primary" href="#killswitchhelperAbout" role="button">About</a>
+      <a class="btn btn-outline-primary" href="#howToUse" role="button">How to use</a>
+      <a class="btn btn-outline-primary" href="#goodToKnow" role="button">Good to know</a>
+      <a class="btn btn-outline-primary" href="#troubleshooting" role="button">Troubleshooting</a>
+    </div>
+  </div>
+
+
+<div class="container" style="margin-top: 20px;">
+  <h1 style="font-family: Cinzel-Regular;" name="getIt"><a name="getIt" href="#getIt">🔗</a> Get it</h1>
+  <div class="col-md-6">
+      <div class="panel-group" id="accordion1">
+          <div class="panel">
+              <div class="panel-heading">
+                  <h7 class="panel-title">
+                      <a class="accordion-toggle collapsed" data-toggle="collapse" data-parent="#accordion1" href="#debainTerminalInstructions">
+                        <div class="d-flex w-100 justify-content-between" style="padding-top:5px; padding-bottom:5px; padding-left: 10px; padding-right:10px;">
+                          <h5 class="mb-1">Debian based distributions</h5>
+                          <small class="text-muted">Terminal</small>
+                        </div>
+                      </a>
+                  </h7>
+              </div>
+              <div id="debainTerminalInstructions" class="panel-collapse collapse" style="height: auto;">
+                  <div class="panel-body">
+                    <ol>
+                      <li>Open a terminal and paste the following command to add my Personal Package Archive:
+                        <pre class="command-line" data-user="you" data-host="your-PC">
+                            <code class="language-batch">
+                              sudo add-apt-repository ppa:eun-s/ppa
+                            </code>
+                        </pre>
+                      </li>
+                      <li>After the PPA has been added, proceed to install with the following commands:
+                        <pre class="command-line" data-user="you" data-host="your-PC">
+                            <code class="language-batch">
+                              sudo apt-get update
+                              sudo apt-get install killswitchhelper
+                            </code>
+                        </pre>
+                      </li>
+                    </ol>
+                  </div>
+              </div>
+          </div>
+          <div class="panel">
+              <div class="panel-heading">
+                  <h7 class="panel-title">
+                      <a class="accordion-toggle collapsed" data-toggle="collapse" data-parent="#accordion1" href="#debianSynapticInstructions">
+                        <div class="d-flex w-100 justify-content-between" style="padding-top:5px; padding-bottom:5px; padding-left: 10px; padding-right:10px;">
+                          <h5 class="mb-1">Debian based distributions</h5>
+                          <small class="text-muted">Synaptic</small>
+                        </div>
+                      </a>
+                  </h7>
+              </div>
+              <div id="debianSynapticInstructions" class="panel-collapse collapse" style="height: 0px;">
+                  <div class="panel-body">
+                    Under construction
+                  </div>
+              </div>
+          </div>
+          <div class="panel">
+              <div class="panel-heading">
+                  <h7 class="panel-title">
+                      <a class="accordion-toggle collapsed" data-toggle="collapse" data-parent="#accordion1" href="#sourceInstructions">
+                        <div class="d-flex w-100 justify-content-between" style="padding-top:5px; padding-bottom:5px; padding-left: 10px; padding-right:10px;">
+                          <h5 class="mb-1">Source</h5>
+                          <small class="text-muted">Terminal</small>
+                        </div>
+                      </a>
+                  </h7>
+              </div>
+              <div id="sourceInstructions" class="panel-collapse collapse" style="height: 0px;">
+                  <div class="panel-body">
+                    <ol>
+                      <li>Make sure you have the following programs and dependencies to compile adequately:
+                        <ul>
+                          <li>cmake</li>
+                          <li>make</li>
+                          <li>valac <small>(version >= 0.34)</small></li>
+                          <li>elementary-sdk</li>
+                          <li>valac-0.34-vapi</li>
+                          <li>libgtk-3-dev</li>
+                          <li>libpolkit-gobject-1-dev</li>
+                        </ul>
+                      </li>
+                      If you are in an elementaryOS release it is very likely for all of those packages to be found in Synaptic.
+                      Otherwise you may need to add the following PPA to your repositories:
+                      <p>http://ppa.launchpad.net/elementary-os/os-patches/ubuntu/</p>
+                      <li>Make sure you have the following dependencies to then be able to use the application:
+                        <ul>
+                          <li>libgtk-3-0 <small>(version >= 3.18)</small></li>
+                          <li>libpolkit-gobject-1-0</li>
+                        </ul>
+                      </li>
+                      <li>Download the source code for this application here.</li>
+                      <li>Extract it anywhere in your computer with your preferred extraction tool.</li>
+                      <li>Open a Terminal and enter the directory named <strong>build</strong>.</li>
+                      <li>Once the terminal is in that directory paste the following command to create the make files:
+                        <pre class="command-line" data-user="you" data-host="your-PC">
+                            <code class="language-batch">cmake -DCMAKE_INSTALL_PREFIX=/usr ../</code>
+                        </pre>
+                      </li>
+                      <li>Type the following command in the terminal and press enter:
+                        <pre class="command-line" data-user="you" data-host="your-PC">
+                            <code class="language-batch">make</code>
+                        </pre>
+                      </li>
+                      <li>Finally, execute the following command:
+                        <pre class="command-line" data-user="you" data-host="your-PC">
+                            <code class="language-batch">sudo make install</code>
+                        </pre>
+                      </li>
+                    </ol>
+                    <p class="lead">Note that this source code comes with an uninstall script. To uninstall, while being in the <strong>build</strong>
+                      directory, execute the following command:
+                    </p>
+                    <pre class="command-line" data-user="you" data-host="your-PC">
+                        <code class="language-batch">sudo make uninstall</code>
+                    </pre>
+                  </div>
+              </div>
+          </div>
+      </div> <!-- panel-group -->
+  </div>
+</div>
+
+<div class="container" style="margin-top: 10px;">
+  <h1 style="font-family: Cinzel-Regular;"><a name="killswitchhelperAbout" href="#killswitchhelperAbout">🔗</a> About</h1>
+  <p class="lead">
+  An application to easily prepare a Kill Switch with a graphical interface.
+  </p>
+</div>
+
+<div class="container" style="margin-top: 10px;">
+  <h1 style="font-family: Cinzel-Regular;"><a name="howToUse" href="#howToUse">🔗</a> How to use</h1>
+  <ol>
+    <li>Launch the application</li>
+    <li>Look at the generated routes</li>
+    <li>Connect to your VPN service</li>
+    <li>Hit the refresh button in this application</li>
+    <li>Look at the new routes and remove the ones you don't want the operating system using in case the VPN connection fails.</li>
+  </ol>
+</div>
+
+<div class="container" style="margin-top: 10px;">
+  <h1 style="font-family: Cinzel-Regular;"><a name="goodToKnow" href="#goodToKnow">🔗</a> Good to know</h1>
+  <ul>
+    <li style="padding:5px;">When the routing table is populated, the first one in the list is the one the operating system uses for networking.</li>
+    <li style="padding:5px;">If this first one fails to connect to the internet for whatever reason, the operating system will automatically use the next route
+    in the list if there is one.</li>
+    <li style="padding:5px;">If the next used route for networking fails too, the operating system continues looking for the next and so on.</li>
+    <li style="padding:5px;">This process tends to happen transparently to the user. Meaning that if you are using a VPN for networking and that connection
+    fails for whatever reason, the operating system will use the next route which will reveal your real connection.</li>
+    <li style="padding:5px;">If this application is used properly and the adequate routes are removed while connected to the VPN service,
+      you can avoid that from happening since as soon as the VPN connection fails, there will be no connection to the internet.</li>
+  </ul>
+</div>
+
+<div class="container" style="margin-top: 10px;">
+  <h1 style="font-family: Cinzel-Regular;"><a name="troubleshooting" href="#troubleshooting">🔗</a> Troubleshooting</h1>
+  <ul>
+    <li style="padding:5px;">Sometimes, you may get an error message like this
+      <img src="images/error_screenshot.png" class="img-fluid" />
+      <p>It means either one of these</p>
+      <ol>
+        <li>The authentication failed - make sure you enter the correct password that gives you root access.</li>
+        <li>The authentication was dismissed by you, the user - try again and don't dismiss the authentication dialog.</li>
+        <li>The program helper could not be found in the system path - make sure the binary <strong>killswitchhelperhelper</strong> is in the system path.
+        The normal place of installation is in <strong>/usr/bin</strong>. Sometimes, when compiling from source code and installing with
+        <strong>make install</strong>, some files fail to install in their respective places. Try running <strong>make install</strong>
+        again if it was that you installed using this method of compiling the source yourself.</li>
+      <li>The route you are trying to add was not added because it could not be added according to routing rules - Some routes require a
+      netowrk route prefix to exist before adding them. That means that if you removed a route similar to this: <strong>192.168.1.1/24</strong> (note the slash),
+      you won't be able to create a route to your default gateway. Try re-adding the network prefix route you eliminated before adding your default
+      gateway back.</li>
+      </ol>
+    </li>
+    <li>Other times you may launch the application and nothing will happen. No user interface is shown and the process exits. In such cases, it can be that the application cannot find
+    the user interface file to load it. The user interface will always be looked for in the same directory the executable of the application lives
+    or in <strong>/usr/share/KillSwitchHelper/KillSwitchHelper.glade</strong>. Make sure the file <strong>KillSwitchHelper.glade</strong> is located in such directory.</li>
+  </ul>
+</div>
+
+<br><br>
+
+<script type="text/javascript">
+
+</script>

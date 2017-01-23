@@ -1,0 +1,784 @@
+---
+layout: default
+title: Making a simple Polkit application in Vala and GTK+
+---
+
+<div class="container-fluid">
+  <div class="row">
+    <!-- Table of content START -->
+    <div class="col-md-3 pull-left" style=" float: left; width: 100hw; height:100vh; overflow-y: hidden; overflow-x: hidden;" id="tableOfContent">
+        <ul>
+            <li><a href="#Introduction">Introduction</a></li>
+            <li><a href="#SettingUpFoldersAndFiles">Setting up the folders and files</a></li>
+            <li><a href="#DownloadingInstallingDependencies">Downloading and installing programs and dependencies</a></li>
+            <li><a href="#codingMakingTheApplication">Coding: Making the application</a></li>
+            <li><a href="#CreatingPolicyFile">Creating the polkit policy file</a></li>
+            <li><a href="#SettingAUTHORSAndCOPYING">Setting the AUTHORS and COPYING files</a></li>
+            <li><a href="#PreparingDesktopAndCMake">Preparing the .desktop file and CMake</a></li>
+            <li><a href="#CompilingAndInstallingTheProgram">Compiling and installing the program</a></li>
+            <li><a href="#Uninstalling">Uninstalling</a></li>
+            <li><a href="#Packaging">Packaging (optional)</a></li>
+        </ul>
+    </div>
+    <!-- Table of content END -->
+
+    <!-- Tutorial content -->
+    <div class="col-md-6">
+
+      <!-- Introduction START -->
+      <h1 class="tutorial-heading"><a name="Introduction" href="#Introduction">🔗</a> Introduction</h1>
+      <p>In this tutorial we are going to learn how to make a Polkit application that launches itself as a privileged process with pkexec.
+      Similar, but not exactly as GParted. In a following tutorial we will make an application with a helper in which the application itself
+      will be launched with the privileges of the user launching it, but later asks for authentication to launch another process to perform an
+      action that requires higher privileges. The other tutorial would be the reccommended way to do it instead of always having your process
+      running as root.</p>
+      <p>GParted for instance, at the moment of writing this tutorial, is launched with pkexec by another process running as the normal user.
+      Then that GParted instance that gets executed by pkexec is always running as root. We will do something similar in this tutorial.</p>
+      <p>I recommend following this tutorial first: <a href="https://elementary.io/docs/code/getting-started">https://elementary.io/docs/code/getting-started</a>
+      , since I will be using the same methodology although in a slightly different order, but it is not a requirement to have
+      done that tutorial first. It will just make it easier to understand what I am doing if you follow that one first.</p>
+      <!-- Introduction END -->
+      <br>
+      <!-- Setting up folders and files -->
+      <h1 class="tutorial-heading"><a name="SettingUpFoldersAndFiles" href="#SettingUpFoldersAndFiles">🔗</a> Setting up the folders and files</h1>
+      <br>
+      <p>Create the following directory and file structure in whatever place you put your programming projects. Normally that is a directory named
+      <strong>Projects</strong> in the Home directory of your desktop account. I am going to assume that such is the case. Make it look like this:</p>
+      <pre><code class="language-markup">📂 Projects
+            📂 polkit-tutorial
+              📂 build
+              📂 data
+                📂 16
+                📂 24
+                📂 32
+                📂 48
+                📂 64
+                📂 128
+                📂 256
+                🗋 polkit-tutorial.desktop
+                🗋 polkit.tutorial.pkexec.policy
+              📂 src
+                📂 vapi
+                🗋 polkit-tutorial-pkexec.vala
+                🗋 polkit-tutorial.vala
+            </code></pre>
+            <br>
+      <p>If you don't want to create all that by hand, execute the following command in a terminal while being in your account's home directory:
+      </p>
+      <pre class="command-line" data-user="you" data-host="your-PC" data-prompt="[you@your-PC:~] $">
+          <code class="language-batch">
+            mkdir -p Projects/polkit-tutorial Projects/polkit-tutorial/build Projects/polkit-tutorial/data Projects/polkit-tutorial/src Projects/polkit-tutorial/src/vapi Projects/polkit-tutorial/data/256 Projects/polkit-tutorial/data/128 Projects/polkit-tutorial/data/64 Projects/polkit-tutorial/data/48 Projects/polkit-tutorial/data/32 Projects/polkit-tutorial/data/24 Projects/polkit-tutorial/data/16 && touch Projects/polkit-tutorial/AUTHORS Projects/polkit-tutorial/CMakeLists.txt Projects/polkit-tutorial/cmake_uninstall.cmake.in Projects/polkit-tutorial/COPYING Projects/polkit-tutorial/data/polkit-tutorial.desktop Projects/polkit-tutorial/src/polkit-tutorial-pkexec.vala Projects/polkit-tutorial/src/polkit-tutorial.vala
+          </code>
+      </pre>
+      <br>
+      <p>Now download the whole git project as zip from here. Extract it anywhere on your computer and copy the content found in the <strong>data</strong> directory right into
+        our project's <strong>data</strong> directory. They are the icons
+      to be used by our application. When you get asked to merge directories, choose <strong>Yes/Merge</strong>.</p>
+      <!-- Setting up folders and files END -->
+
+
+      <!-- Downloading and installing programs and dependencies -->
+      <br>
+      <h1 class="tutorial-heading"><a name="DownloadingInstallingDependencies" href="#DownloadingInstallingDependencies">🔗</a> Downloading and installing programs and dependencies</h1>
+      <br>
+      <p>We only need <strong>elementary-SDK</strong> to build our application, but if you
+      want to package it in Launchpad, which will be an optional part of this tutorial, you will also need <strong>bzr</strong>.
+      There are more dependencies, but if you install <strong>elementary-SDK</strong> through apt-get, those dependencies will
+      be automatically installed too. The most important are: <strong>valac</strong>, <strong>cmake</strong>,
+      <strong>make</strong>, <strong>libgtk-3-dev</strong>. The valac version and its vapi must be version 0.34 or higher, so let's add
+      some repositories to satisfy our dependencies before we do anything else. Launch a Terminal and execute these commands to add the adequate
+      repositories without breaking your installation:</p>
+      <br>
+      <pre class="command-line" data-user="you" data-host="your-PC">
+      <code class="language-batch">
+         sudo add-apt-repository "deb http://ppa.launchpad.net/elementary-os/daily/ubuntu xenial/main"
+         sudo add-apt-repository "deb http://ppa.launchpad.net/elementary-os/os-patches/ubuntu xenial/main"
+         sudo apt-get update
+      </code>
+      </pre>
+      <br>
+      <p>elementaryOS users of Loki already have them, they don't have to execute the above commands. But the following command
+      must be executed by anyone to install the dependencies:</p>
+      <pre class="command-line" data-user="you" data-host="your-PC">
+      <code class="language-batch">
+         sudo apt-get install elementary-sdk
+      </code>
+      </pre>
+      <br>
+      <p class="small">The valac 0.34 is available trough Zesty's (Ubuntu 17.04) universal
+      repository which may cause conflicts if you try to add such repository in an Ubuntu release prior to 17.04. That is why we use these other
+      repositories instead. Since at the moment of writing this tutorial there is no official Ubuntu 17.04 released.</p>
+      <!-- Downloading and installing programs and dependencies END -->
+
+
+      <!-- Coding: Making the application -->
+      <br>
+      <h1 class="tutorial-heading"><a name="codingMakingTheApplication" href="#codingMakingTheApplication">🔗</a> Coding: Making the application</h1>
+      <br>
+      <p>Open the file <strong>polkit-tutorial-pkexec.vala</strong> and write the following code:</p>
+      <pre>
+      <code class="language-csharp line-numbers">
+        public static int main (string[] args) {
+          // Create the variables for the process execution
+          string[] spawnArguments = {"pkexec", "polkit-tutorial"};
+          string[] spawnEnvironment = Environ.get ();
+          string spawnStdOut;
+          string spawnStdError;
+          int spawnExitStatus;
+
+          try {
+            // Spawn the process synchronizedly
+            // We do it synchronizedly because since we are just launching another process and such is the whole
+            // purpose of this program, we don't want to exit this, the caller, since that will cause our spawned process to become a zombie.
+            Process.spawn_sync ("/", spawnArguments, spawnEnvironment, SpawnFlags.SEARCH_PATH, null, out spawnStdOut, out spawnStdError, out spawnExitStatus);
+
+            // Print the output if any
+            stdout.printf ("Output: %s\n", spawnStdOut);
+            // Print the error if any
+            stderr.printf ("There was an error in the spawned process: %s\n", spawnStdError);
+            // Print the exit status
+            stderr.printf ("Exit status was: %d\n", spawnExitStatus);
+          } catch (SpawnError spawnCaughtError) {
+            stderr.printf ("There was an error spawining the process. Details: %s", spawnCaughtError.message);
+          }
+
+          return 0;
+        }
+      </code>
+      </pre>
+      <br>
+      <p>From lines <span class="inlineCodeSnippet">3-7</span> we set-up the variables to later launch our application with root privileges using
+      <strong>pkexec</strong>. In line <span class="inlineCodeSnippet">13</span> we actually launch our application using
+      <strong>pkexec</strong>. In lines
+      <span class="inlineCodeSnippet">16-20</span> we print the standard output, the standard error as well as the exit status of the
+      spawned process.</p>
+      <br>
+      Now open the file <strong>polkit-tutorial.vala</strong> and write the following code:
+      <br>
+      <pre>
+      <code class="language-csharp line-numbers">
+        using Gtk;
+        public class PolkitTutorialApplication : Gtk.Application {
+
+            public PolkitTutorialApplication () {
+                Object (application_id: "polkit.tutorial",
+                flags: ApplicationFlags.FLAGS_NONE);
+            }
+
+            protected override void activate () {
+                // The main window with its title and size
+                var window = new Gtk.ApplicationWindow (this);
+                window.title = "Polkit tutorial";
+
+                // The buttons container
+                Box buttonsBox = new Box (Gtk.Orientation.VERTICAL, 0);
+                // The home directory
+                string temporaryFilesDirectory = Environment.get_tmp_dir ();
+
+                // Create the button with the functionality to create a file
+                Button writeFile = new Button.with_label ("Create test file in " + temporaryFilesDirectory);
+                // On button click
+                writeFile.clicked.connect (() => {
+                  try {
+                    // The file
+                    var polkitTutorialFile = File.new_for_path (temporaryFilesDirectory + "/polkit-tutorial-sample-file.txt");
+                    // Write the file to Documents
+                    polkitTutorialFile.create (FileCreateFlags.PRIVATE);
+                  } catch (Error caughtError) {
+                    stderr.printf ("GLib error. Details: %s", caughtError.message);
+                  }
+            		});
+                Button deleteFile = new Button.with_label ("Delete created file from " + temporaryFilesDirectory);
+                // On button click
+                deleteFile.clicked.connect (() => {
+                  try {
+                    // Get the file in a variable
+                    var polkitTutorialFile = File.new_for_path (temporaryFilesDirectory + "/polkit-tutorial-sample-file.txt");
+                    // Delete the file
+                    polkitTutorialFile.delete ();
+                  } catch (Error caughtError) {
+                    stderr.printf ("GLib error. Details: %s", caughtError.message);
+                  }
+            		});
+
+                buttonsBox.pack_start (writeFile, false, false, 10);
+        		    buttonsBox.pack_start (deleteFile, false, false, 10);
+                buttonsBox.margin = 10;
+
+                window.add (buttonsBox);
+                window.show_all ();
+            }
+
+            public static int main (string[] args) {
+                var app = new PolkitTutorialApplication ();
+                return app.run (args);
+            }
+        }
+      </code>
+      </pre>
+      <br>
+      <p>Our lines of interest are line <span class="inlineCodeSnippet">27</span> and line <span class="inlineCodeSnippet">39</span>.
+      When the program runs as root when launched with pkexec by our previous program
+      and you click the button to create the file, said file will be created
+      with the owner being root. Try opening a file explorer and look at the properties of the file. You will notice it is owned by root
+      and you cannot delete it. To delete it, you must click the button in the application that is running as root.
+      </p>
+      <p>Let's now create the .policy file since without it, our application will not run adequately even if we compile it and install it.</p>
+      <!-- Coding: Making the application END -->
+
+      <!-- Creating the policy file -->
+      <div>
+          <br>
+          <h1 class="tutorial-heading"><a name="CreatingPolicyFile" href="#CreatingPolicyFile">🔗</a> Creating the <strong>.policy</strong> file</h1>
+          <p>
+              <br>
+               Open the <strong>polkit.tutorial.pkexec.policy</strong> file and paste the following:
+              <pre class="language-html">
+              <code class="language-html">
+                <textarea rows="20" cols="40" style="border:none;">
+                  <?xml version="1.0" encoding="UTF-8"?>
+                  <!DOCTYPE policyconfig PUBLIC
+                   "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+                   "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+                  <policyconfig>
+                    <vendor>GreyOk</vendor>
+                    <action id="polkit.pkexec.tutorial">
+                      <message gettext-domain="polkit-tutorial">Authentication is required to run Polkit Tutorial.</message>
+                      <icon_name>polkit-tutorial</icon_name>
+                      <defaults>
+                        <allow_any>auth_admin</allow_any>
+                        <allow_inactive>auth_admin</allow_inactive>
+                        <allow_active>auth_admin</allow_active>
+                      </defaults>
+                      <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/polkit-tutorial</annotate>
+                      <annotate key="org.freedesktop.policykit.exec.allow_gui">true</annotate>
+                    </action>
+                  </policyconfig>
+                </textarea>
+              </code>
+              </pre>
+          </p>
+          <p>Before we proceed any further, let's create the AUTHORS and COPYING file. Then we set the CMake to compile these programs and install them.</p>
+      </div>
+      <!-- Creating the policy file END-->
+
+
+      <!-- Setting the AUTHORS and COPYING file -->
+      <div>
+          <br>
+          <h1 class="tutorial-heading"><a name="SettingAUTHORSAndCOPYING" href="#SettingAUTHORSAndCOPYING">🔗</a> Setting the <strong>AUTHORS</strong> and <strong>COPYING</strong> files</h1>
+          <p>
+              <br>
+              We use the same method found <a href="https://elementary.io/docs/code/getting-started#legal-stuff">here</a>. The
+              <strong>AUTHORS</strong> file contains your name and email address along with the name and email address of whoever helped you in creating the application. It can be something like:
+              <pre>
+              <code class="language-markup">
+              Your Name &lt;you@emaildomain.com&gt;
+              Your Friend &lt;friend@emaildomain.com&gt;
+              </code>
+              </pre>
+          <br>
+          The <strong>COPYING</strong> file contains the license under which your code is released.
+          For this program we will use <a href="https://www.gnu.org/licenses/gpl-3.0.txt">GPL</a>.
+          Attach the notice as per instructions in that file to the <strong>COPYING</strong> file. Note: You can choose another license.
+          </p>
+      </div>
+      <!-- Setting the AUTHORS and COPYING file END-->
+
+      <!-- Preparing the .desktop and cmake files -->
+      <br>
+      <h1 class="tutorial-heading"><a name="PreparingDesktopAndCMake" href="#PreparingDesktopAndCMake">🔗</a> Preparing the <strong>.desktop</strong> file and <strong>CMake</strong></h1>
+      <br>
+      <p>Open the <strong>polkit-tutorial.desktop</strong> file and add the following:</p>
+      <pre>
+      <code class="language-markup">
+        [Desktop Entry]
+        Name=Polkit Tutorial
+        GenericName=Polkit Tutorial App
+        Comment=An application that uses pkexec to run as root
+        Categories=Utility;
+        Exec=polkit-tutorial-pkexec
+        Icon=polkit-tutorial
+        Terminal=false
+        Type=Application
+        X-GNOME-Gettext-Domain=polkit-tutorial
+        Keywords=polkit;
+      </code>
+      </pre>
+      <br>
+      <p>For the CMake file we use the same one <a href="https://elementary.io/docs/code/getting-started#the-build-system">here</a>,
+        but with some differences to fit our case. Open the <strong>CMakeLists.txt</strong> file and add the following:</p>
+      <pre>
+      <code class="language-markup">
+        # project name
+        project (PolkitTutorial)
+
+        # uninstall target
+        configure_file(
+          "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
+          "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+          IMMEDIATE @ONLY)
+
+        add_custom_target(uninstall
+          COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
+
+        # the oldest stable cmake version to require
+        cmake_minimum_required (VERSION 2.6)
+
+        # tell cmake where its modules can be found in our project directory (vala modules)
+        #list (APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
+        #list (APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/src)
+
+        # where we install data directory (if we have any)
+        set (DATADIR "${CMAKE_INSTALL_PREFIX}/share")
+
+        # what to call that directory where we install data too
+        set (PKGDATADIR "${DATADIR}/PolkitTutorial")
+
+        #set the name of our two executables
+        set (EXEC_NAME "polkit-tutorial-pkexec")
+        set (EXEC_NAME2 "polkit-tutorial")
+        set (RELEASE_NAME "A simple polkit tutorial.")
+        set (VERSION "0.1")
+        set (VERSION_INFO "First release")
+
+        # we're about to use pkgconfig to make sure dependencies are installed so let's find pkgconfig first
+        find_package(PkgConfig)
+
+        # now let's actually check for the required dependencies
+        pkg_check_modules(DEPS REQUIRED gtk+-3.0 gio-2.0)
+
+        add_definitions(${DEPS_CFLAGS})
+        link_libraries(${DEPS_LIBRARIES})
+        link_directories(${DEPS_LIBRARY_DIRS})
+
+        # make sure we have vala
+        find_package(Vala REQUIRED)
+        # make sure we use vala
+        include(ValaVersion)
+        # make sure it's the desired version of vala
+        ensure_vala_version("0.16" MINIMUM)
+
+        # files we want to compile
+        include(ValaPrecompile)
+        vala_precompile(VALA_C ${EXEC_NAME}
+            src/polkit-tutorial-pkexec.vala
+
+        # tell what libraries to use when compiling
+        PACKAGES
+            gtk+-3.0
+            gio-2.0
+        )
+
+        # tell cmake what to call the executable we just made
+        add_executable(${EXEC_NAME} ${VALA_C})
+        target_compile_options (${EXEC_NAME} PUBLIC -fPIE)
+
+        vala_precompile(VALA_C ${EXEC_NAME2}
+            src/polkit-tutorial.vala
+
+        # tell what libraries to use when compiling
+        PACKAGES
+            gtk+-3.0
+            gio-2.0
+        )
+        # tell cmake what to call the executable we just made
+        add_executable(${EXEC_NAME2} ${VALA_C})
+
+        # install the binaries we just made
+        install (TARGETS ${EXEC_NAME} RUNTIME DESTINATION bin)
+        install (TARGETS ${EXEC_NAME2} RUNTIME DESTINATION bin)
+
+        # install the polkit action file
+        install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/polkit.tutorial.pkexec.policy DESTINATION /usr/share/polkit-1/actions/)
+
+        # install our .desktop file so the Applications menu will see it
+        install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/polkit-tutorial.desktop DESTINATION ${DATADIR}/applications/)
+
+        # install the application icons
+        install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/16/polkit-tutorial.png DESTINATION ${DATADIR}/icons/gnome/16x16/apps/)
+        install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/24/polkit-tutorial.png DESTINATION ${DATADIR}/icons/gnome/24x24/apps/)
+        install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/32/polkit-tutorial.png DESTINATION ${DATADIR}/icons/gnome/32x32/apps/)
+        install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/48/polkit-tutorial.png DESTINATION ${DATADIR}/icons/gnome/48x48/apps/)
+        install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/128/polkit-tutorial.png DESTINATION ${DATADIR}/icons/gnome/128x128/apps/)
+        install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/256/polkit-tutorial.png DESTINATION ${DATADIR}/icons/gnome/256x256/apps/)
+        install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/256/polkit-tutorial.svg DESTINATION ${DATADIR}/pixmaps/)
+
+        install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/16/polkit-tutorial.svg DESTINATION ${DATADIR}/icons/elementary/apps/16/)
+        install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/24/polkit-tutorial.svg DESTINATION ${DATADIR}/icons/elementary/apps/24/)
+        install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/32/polkit-tutorial.svg DESTINATION ${DATADIR}/icons/elementary/apps/32/)
+        install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/48/polkit-tutorial.svg DESTINATION ${DATADIR}/icons/elementary/apps/48/)
+        install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/128/polkit-tutorial.svg DESTINATION ${DATADIR}/icons/elementary/apps/128/)
+        install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/256/polkit-tutorial.svg DESTINATION ${DATADIR}/icons/elementary/apps/256/)
+      </code>
+      </pre>
+      <br>
+      <p>The following is very important so that you can run <span class="inlineCodeSnippet">sudo make uninstall</span> and
+      uninstall the program. Open the <strong>cmake_uninstall.cmake.in</strong> and paste the following logic:</p>
+      <pre>
+      <code class="language-markup">
+        if(NOT EXISTS "@CMAKE_CURRENT_BINARY_DIR@/install_manifest.txt")
+          message(FATAL_ERROR "Cannot find install manifest: @CMAKE_CURRENT_BINARY_DIR@/install_manifest.txt")
+        endif(NOT EXISTS "@CMAKE_CURRENT_BINARY_DIR@/install_manifest.txt")
+
+        file(READ "@CMAKE_CURRENT_BINARY_DIR@/install_manifest.txt" files)
+        string(REGEX REPLACE "\n" ";" files "${files}")
+        foreach(file ${files})
+          message(STATUS "Uninstalling $ENV{DESTDIR}${file}")
+          if(IS_SYMLINK "$ENV{DESTDIR}${file}" OR EXISTS "$ENV{DESTDIR}${file}")
+            exec_program(
+              "@CMAKE_COMMAND@" ARGS "-E remove \"$ENV{DESTDIR}${file}\""
+              OUTPUT_VARIABLE rm_out
+              RETURN_VALUE rm_retval
+              )
+            if(NOT "${rm_retval}" STREQUAL 0)
+              message(FATAL_ERROR "Problem when removing $ENV{DESTDIR}${file}")
+            endif(NOT "${rm_retval}" STREQUAL 0)
+          else(IS_SYMLINK "$ENV{DESTDIR}${file}" OR EXISTS "$ENV{DESTDIR}${file}")
+            message(STATUS "File $ENV{DESTDIR}${file} does not exist.")
+          endif(IS_SYMLINK "$ENV{DESTDIR}${file}" OR EXISTS "$ENV{DESTDIR}${file}")
+        endforeach(file)
+      </code>
+      </pre>
+      <br>
+      <p>That will allow us to uninstall the program and all the installed files without having to manually remove file by file.</p>
+      <!-- Preparing the .desktop and cmake files END -->
+
+
+      <!-- Compiling and installing the program -->
+      <h1 class="tutorial-heading"><a name="CompilingAndInstallingTheProgram" href="#CompilingAndInstallingTheProgram">🔗</a> Compiling and installing the program</h1>
+      <br>
+      <p>We are finally able to compile and install our program to test it. Launch a terminal, move to the <strong>build</strong>
+      directory and execute the following commands to create the make files, compile, and install.</p>
+      <pre class="command-line" data-user="you" data-host="your-PC" data-prompt="[you@your-PC:~/Projects/polkit-tutorial/build] $">
+      <code class="language-batch">
+         cmake -DCMAKE_INSTALL_PREFIX=/usr ../
+         make
+         sudo make install
+      </code>
+      </pre>
+      <br>
+      <p>Now test the application. Run it and you should get a message like this:</p>
+      <img class="image-fluid"src="images/polkit_tutorial_authentication_screen.png">
+      <p>When you authenticate correctly you should be left with something similar to this:</p>
+      <div class="d-flex justify-content-center"><img class="image-fluid align-middle"src="images/polkit_pkexec_tutorial.png"></div>
+      <br>
+      <br>
+      <p>Click the create file button and then look for the file created in said place. Unless you have modified the code
+        in the tutorial, the name of the file should be <strong>polkit-tutorial-sample-file.txt</strong>. Look in the file properties at who
+      is the owner. It should be <strong>root</strong> because the application is running as root and therefore, the owner of the file
+      is root. You will not be able to delete it manually if you try to delete it as your user. Only root can delete it. Effectively showing
+      that the application is running as root when it created the file. Now, click the delete button in the same application and the file
+      will be deleted.</p>
+      <br>
+      <!-- Compiling and installing the program END-->
+
+      <!-- Uninstalling -->
+      <h1 class="tutorial-heading"><a name="Uninstalling" href="#Uninstalling">🔗</a> Uninstalling</h1>
+      <br>
+      <p>To uninstall, execute the following command while being in the <strong>build</strong> directory where the make files where created
+      in the previous section:</p>
+      <pre class="command-line" data-user="you" data-host="your-PC" data-prompt="[you@your-PC:~Projects/polkit-tutorial/build] $">
+      <code class="language-batch">
+         sudo make uninstall
+      </code>
+      </pre>
+      <br>
+      <!-- Uninstalling END -->
+
+
+      <!-- Packaging -->
+      <h1 class="tutorial-heading"><a name="Packaging" href="#Packaging">🔗</a> Packaging</h1>
+      <br>
+      <p>This part is optional. We are going to use the same method used <a href="https://elementary.io/docs/code/getting-started#packaging">here</a>.
+      Create a new directory inside your project directory named <strong>polkit-tutorial-packaging</strong>. Copy inside it all of the content
+      and project structure we have created until now. Now install the following programs with these commands if you don't have them already:</p>
+      <pre class="command-line" data-user="you" data-host="your-PC">
+      <code class="language-batch">
+         sudo apt-get install bzr
+         sudo apt-get install bzr-builder
+         sudo apt-get install pbuilder
+         sudo apt install openssh-client
+      </code>
+      </pre>
+      <br>
+      <p>You must modify the <strong>CMakeLists.txt</strong> file of <strong>polkit-tutorial-packaging</strong> and make it look
+      like bellow:</p>
+      <pre>
+      <code class="language-markup">
+        # project name
+        project (PolkitTutorial)
+
+        # the oldest stable cmake version to require
+        cmake_minimum_required (VERSION 2.6)
+
+        # tell cmake where its modules can be found in our project directory (vala modules)
+        list (APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
+        list (APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/src)
+
+        # where we install data directory (if we have any)
+        set (DATADIR "${CMAKE_INSTALL_PREFIX}/share")
+
+        # what to call that directory where we install data too
+        set (PKGDATADIR "${DATADIR}/PolkitTutorial")
+
+        #set the name of our two executables
+        set (EXEC_NAME "polkit-tutorial-pkexec")
+        set (EXEC_NAME2 "polkit-tutorial")
+        set (RELEASE_NAME "A simple polkit tutorial.")
+        set (VERSION "0.1")
+        set (VERSION_INFO "First release")
+
+        # we're about to use pkgconfig to make sure dependencies are installed so let's find pkgconfig first
+        find_package(PkgConfig)
+
+        # now let's actually check for the required dependencies
+        pkg_check_modules(DEPS REQUIRED gtk+-3.0 gio-2.0)
+
+        add_definitions(${DEPS_CFLAGS})
+        link_libraries(${DEPS_LIBRARIES})
+        link_directories(${DEPS_LIBRARY_DIRS})
+
+        # make sure we have vala
+        find_package(Vala REQUIRED)
+        # make sure we use vala
+        include(ValaVersion)
+        # make sure it's the desired version of vala
+        ensure_vala_version("0.16" MINIMUM)
+
+        # files we want to compile
+        include(ValaPrecompile)
+        vala_precompile(VALA_C ${EXEC_NAME}
+            src/polkit-tutorial-pkexec.vala
+
+        # tell what libraries to use when compiling
+        PACKAGES
+            gtk+-3.0
+            gio-2.0
+        )
+
+        # tell cmake what to call the executable we just made
+        add_executable(${EXEC_NAME} ${VALA_C})
+        target_compile_options (${EXEC_NAME} PUBLIC -fPIE)
+
+        vala_precompile(VALA_C ${EXEC_NAME2}
+            src/polkit-tutorial.vala
+
+        # tell what libraries to use when compiling
+        PACKAGES
+            gtk+-3.0
+            gio-2.0
+        )
+        # tell cmake what to call the executable we just made
+        add_executable(${EXEC_NAME2} ${VALA_C})
+
+        # install the binaries we just made
+        install (TARGETS ${EXEC_NAME} RUNTIME DESTINATION bin)
+        install (TARGETS ${EXEC_NAME2} RUNTIME DESTINATION bin)
+
+        # install the polkit action file
+        install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/polkit.tutorial.pkexec.policy DESTINATION /usr/share/polkit-1/actions/)
+
+        # install our .desktop file so the Applications menu will see it
+        install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/polkit-tutorial.desktop DESTINATION ${DATADIR}/applications/)
+
+        # install the application icons
+        install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/16/polkit-tutorial.png DESTINATION ${DATADIR}/icons/gnome/16x16/apps/)
+        install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/24/polkit-tutorial.png DESTINATION ${DATADIR}/icons/gnome/24x24/apps/)
+        install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/32/polkit-tutorial.png DESTINATION ${DATADIR}/icons/gnome/32x32/apps/)
+        install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/48/polkit-tutorial.png DESTINATION ${DATADIR}/icons/gnome/48x48/apps/)
+        install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/128/polkit-tutorial.png DESTINATION ${DATADIR}/icons/gnome/128x128/apps/)
+        install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/256/polkit-tutorial.png DESTINATION ${DATADIR}/icons/gnome/256x256/apps/)
+        install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/256/polkit-tutorial.svg DESTINATION ${DATADIR}/pixmaps/)
+
+        install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/16/polkit-tutorial.svg DESTINATION ${DATADIR}/icons/elementary/apps/16/)
+        install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/24/polkit-tutorial.svg DESTINATION ${DATADIR}/icons/elementary/apps/24/)
+        install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/32/polkit-tutorial.svg DESTINATION ${DATADIR}/icons/elementary/apps/32/)
+        install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/48/polkit-tutorial.svg DESTINATION ${DATADIR}/icons/elementary/apps/48/)
+        install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/128/polkit-tutorial.svg DESTINATION ${DATADIR}/icons/elementary/apps/128/)
+        install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/256/polkit-tutorial.svg DESTINATION ${DATADIR}/icons/elementary/apps/256/)
+      </code>
+      </pre>
+      <br>
+      <p>What we did was remove the uninstall rules, since they won't be needed for Debian packaging and uncommented these lines:
+      <span class="inlineCodeSnippet">list (APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)</span> and
+      <span class="inlineCodeSnippet">list (APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)</span>. Since we did that, now
+      we need to get the cmake modules that the cmake of Launchpad will use because unlike
+      us, the cmake that Launchpad will use, won't have those modules. Launch a terminal and get a copy of the cmake modules
+      that the elementary team mantains:</p>
+      <pre class="command-line" data-user="you" data-host="your-PC">
+      <code class="language-batch">
+         bzr branch lp:~elementary-os/+junk/cmake-modules
+      </code>
+      </pre>
+      <br>
+      <p>Now copy the contents of the directory you just got (<strong>cmake-modules</strong>) into a directory named
+      <strong>cmake</strong> in the packaging directory. Just the contents. Such that it looks like this: </p>
+      <pre><code class="language-markup">
+            📂 polkit-tutorial-packaging
+              📂 build
+              📂 cmake
+                📂 src
+                ↪...
+              📂 data
+                ↪...
+              📂 src
+                ↪...
+            </code></pre>
+            <br>
+      <p>If you have not yet setup a Launchpad account follow these steps. Otherwise you can skip them. Launch a terminal in
+        your <strong>home directory</strong> and execute:</p>
+      <pre class="command-line" data-user="you" data-host="your-PC" data-prompt="[you@your-PC:~] $">
+      <code class="language-batch">
+         ssh-keygen -C rsa-key-bzr -t rsa
+      </code>
+      </pre>
+      <br>
+      <p>Accept the default file name for your key. Enter a password when prompted and then enter it again. Everytime
+      you want to push your project to Launchpad, you will need to use this password. Don't forget it. Now open the file
+      <strong>~/.ssh/id_rsa.pub</strong> with your favorite editor. In elementaryOS you can do it with the following command:</p>
+      <pre class="command-line" data-user="you" data-host="your-PC">
+      <code class="language-batch">
+         scratch-text-editor ~/.ssh/id_rsa.pub
+      </code>
+      </pre>
+      <br>
+      <p>Login to your Launchpad account in a web browser, paste in your <a href="https://launchpad.net/people/+me/+editsshkeys">SSH keys page</a> the text in the file you
+      just opened. Then click <strong>Import public key</strong>. Now you can login to Launchpad in your terminal with the following command:</p>
+      <pre class="command-line" data-user="you" data-host="your-PC">
+      <code class="language-batch">
+         bzr launchpad-login your-launchpad-id
+      </code>
+      </pre>
+      <br>
+      <p>Replace <strong>your-launchpad-id</strong> with your Launchpad ID that you can find when you login to your Launchpad page in a
+        web browser.</p>
+        <br>
+      <p>Now edit the file <strong>~/.pbuilderrc</strong>. This is the full path of the file. It is in your home directory
+      and it is hidden. You need to enable the view of hidden files to view it in a file explorer. In elementaryOS
+      you can edit it with the following command:</p>
+      <pre class="command-line" data-user="you" data-host="your-PC">
+      <code class="language-batch">
+         scratch-text-editor ~/.pbuilderrc
+      </code>
+      </pre>
+      <br>
+      <p>Add the following to said file:</p>
+      <pre>
+      <code class="language-markup">
+        COMPONENTS="main universe multiverse restricted"
+        DISTRIBUTION=zesty
+      </code>
+      </pre>
+      <br>
+      <p>Get a copy of the debian template files that the elementary team mantains with this command, ran from
+        the <strong>Projects</strong> directory:</p>
+      <pre class="command-line" data-user="you" data-host="your-PC" data-prompt="[you@your-PC:~/Projects] $">
+      <code class="language-batch">
+         bzr branch lp:~elementary-apps/+junk/debian-template
+      </code>
+      </pre>
+      <br>
+      <p>Now copy the <strong>debian</strong> directory that was created in the branch you just
+        grabbed (located in the <strong>Projects</strong> directory) into the <strong>polkit-tutorial-packaging</strong> directory. Open
+      the file named <strong>changelog</strong> and paste the following:</p>
+      <pre>
+      <code class="language-markup">
+        hello-packaging (0.1) precise; urgency=low
+
+          * Initial Release.
+
+        -- Your Name <you@emailaddress.com>  Sat, 21 Jan 2017 05:30:22 -0500
+      </code>
+      </pre>
+      <br>
+      <p>Open the file named <strong>control</strong> and paste the following: </p>
+      <pre>
+      <code class="language-markup">
+        Source: polkit-tutorial-packaging
+        Section: x11
+        Priority: extra
+        Maintainer: Your Name <you@emailaddress.com>
+        Build-Depends: cmake (>= 2.8),
+                       debhelper (>= 8.0.0),
+                       valac-0.34 | valac (>= 0.34)
+        Standards-Version: 3.9.7
+
+        Package: polkit-tutorial-packaging
+        Architecture: any
+        Depends: ${misc:Depends}, ${shlibs:Depends}
+        Description: Polkit Tutorial
+         This is a tutorial for using pkexec with GTK+ and Vala
+      </code>
+      </pre>
+      <br>
+      <p>Open the file called <strong>copyright</strong> and paste the following:</p>
+      <pre>
+      <code class="language-markup">
+        Format: http://dep.debian.net/deps/dep5
+        Upstream-Name: polkit-tutorial-packaging
+        Source: https://code.launchpad.net/~your-launchpad-id/+junk/polkit-tutorial-packaging
+
+        Files: build/* cmake/* src/* data/* debian/*
+        Copyright: 2013 Your Name <you@emailaddress.com>
+        License: GPL-3.0+
+      </code>
+      </pre>
+      <br>
+      <p>Create a file in the <strong>polkit-tutorial-packaging</strong> directory named <strong>polkit-tutorial-packaging.recipe</strong>
+      and put the following in it:</p>
+      <pre>
+      <code class="language-markup">
+        # bzr-builder format 0.3 deb-version {debupstream}+r{revno}-1
+        lp:~your-launchpad-id/+junk/polkit-tutorial-packaging
+      </code>
+      </pre>
+      <br>
+      <p>Initialize a bazaar repository by opening a terminal, moving to the <strong>polkit-tutorial-packaging</strong> directory and
+      executing these commands:</p>
+      <pre class="command-line" data-user="you" data-host="your-PC" data-prompt="[you@your-PC:~/Projects/polkit-tutorial/polkit-tutorial-packaging] $">
+      <code class="language-batch">
+         bzr init
+         bzr add build/* cmake/* data/* src/* debian/* CMakeLists.txt COPYING AUTHORS
+         bzr commit -m "Initial commit"
+         bzr push lp:~your-launchpad-id/+junk/polkit-tutorial-packaging
+      </code>
+      </pre>
+      <br>
+      <p>Now execute these commands to package it locally before proceeding to ask Launchpad to package it:</p>
+      <pre class="command-line" data-user="you" data-host="your-PC" data-prompt="[you@your-PC:~/Projects/polkit-tutorial/polkit-tutorial-packaging] $">
+      <code class="language-batch">
+         bzr dailydeb --allow-fallback-to-native polkit-tutorial-packaging.recipe working-dir
+         sudo pbuilder create
+         sudo pbuilder build working-dir/[project_version].dsc
+      </code>
+      </pre>
+      <br>
+      <p>Replace <strong>project_version</strong> with the name of the <strong>.dsc</strong> created in
+        <strong>working-dir</strong>. If everything went well a package should have been created in <strong>/var/cache/pbuilder/result/</strong>.
+      Then you can proceed to tell Launchpad to package it.</p>
+      <br>
+      <p>Once you have successfully created a package locally, you can go to your Launchpad page, enter your recently uploaded branch for
+      packaging: <a href="https://code.launchpad.net/people/+me/+junk/polkit-tutorial-packaging/+new-recipe">https://code.launchpad.net/people/+me/+junk/polkit-tutorial-packaging/+new-recipe</a> and click
+      <strong>Create packaging recipe</strong>. Customize as you see fit, and when you get to the
+      <strong>Default distribution series</strong> make sure you check <strong>Zesty</strong>. Remember that we used valac version 0.34,
+      and to prevent problems it is better to select this one. Don't worry, your package will be installable in Xenial as long as the only
+      thing that you are using from Zesty is the valac 0.34 toghether with it's vapi and not other libraries.
+      Since this specific application in this tutorial doesn't make use of specific vala vapi 0.34 functions, you can choose <strong>Xenial</strong> or
+      <strong>Trusty</strong>. But remember, if in the future you make use of the whole developing environment in this tutorial,
+      you may end up using a function available only in vala vapi 0.34 which will render your program unbuildable under anyhting older than Zesty.</p>
+      <br>
+      <br>
+      <!-- Packaging END -->
+
+
+    </div>
+    <!-- Tutorial content END -->
+
+
+  </div>
+</div>
+
+<script "text/javascript">
+
+</script>

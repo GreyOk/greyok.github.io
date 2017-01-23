@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>{{ page.title }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link rel="stylesheet" href="css/tether.css">
+  <link rel="stylesheet" href="css/bootstrap.css">
+  <!-- Prism syntax highlighter -->
+  <link href="css/prism.min.css" rel="stylesheet">
+  <link rel="stylesheet" media="screen" href="https://fontlibrary.org/face/cinzel" type="text/css"/>
+  <style>
+  @font-face {
+    font-family: 'CinzelDecorative-Regular'; /*a name to be used later*/
+    src: url('fonts/CinzelDecorative-Regular-webfont.woff'); /*URL to font*/
+  }
+  @font-face {
+    font-family: 'CinzelDecorative-Black'; /*a name to be used later*/
+    src: url("fonts/CinzelDecorative-Black-webfont.woff"); /*URL to font*/
+  }
+  @font-face {
+    font-family: 'Cinzel-Regular'; /*a name to be used later*/
+    src: url("fonts/Cinzel-Regular-webfont.woff"); /*URL to font*/
+  }
+  @font-face {
+    font-family: 'CinzelBlack'; /*a name to be used later*/
+    src: url('fonts/Cinzel-Black-webfont.woff'); /*URL to font*/
+  }
+  @font-face {
+    font-family: 'CinzelBlold'; /*a name to be used later*/
+    src: url('fonts/Cinzel-Bold-webfont.woff'); /*URL to font*/
+  }
+  @font-face {
+    font-family: 'Roboto-Light'; /*a name to be used later*/
+    src: url('fonts/Roboto-Light-webfont.woff'); /*URL to font*/
+  }
+  @font-face {
+    font-family: 'Roboto-Regular'; /*a name to be used later*/
+    src: url('fonts/Roboto-Regular-webfont.woff'); /*URL to font*/
+  }
+  @font-face {
+    font-family: 'Raleway-Thin'; /*a name to be used later*/
+    src: url('fonts/raleway_thin-webfont.woff'); /*URL to font*/
+  }
+  .navbar-brand {
+    font-family: 'CinzelBlold';
+  }
+  .tutorial-heading{
+      font-family: Raleway-Thin;
+      font-weight: 50;
+      float: none;
+      margin: 0 auto;
+  }
+  .panel {
+    border-radius: 5px;
+    border: 1px solid #000000;
+    margin-bottom: 5px;
+    background:rgba(255,255,255,0.4);
+  }
+  .panel-body {
+    border-top: 1px solid #000000;
+    margin-bottom: 5px;
+  }
+
+  li {
+    padding:5px;
+  }
+  .inlineCodeSnippet {
+    border-radius: 5px;
+    padding-left: 5px;
+    padding-right: 5px;
+    background-color: #b3b3b3;
+    font-family: 'Roboto-Regular';
+    color: #ff0066;
+  }
+  body{
+    /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#aed9e4+0,d8edf2+60,f8fbfc+100 */
+    background: #aed9e4; /* Old browsers */
+    background: -moz-linear-gradient(top, #aed9e4 0%, #d8edf2 60%, #f8fbfc 100%); /* FF3.6-15 */
+    background: -webkit-linear-gradient(top, #aed9e4 0%,#d8edf2 60%,#f8fbfc 100%); /* Chrome10-25,Safari5.1-6 */
+    background: linear-gradient(to bottom, #aed9e4 0%,#d8edf2 60%,#f8fbfc 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#aed9e4', endColorstr='#f8fbfc',GradientType=0 ); /* IE6-9 */
+    background-repeat: no-repeat;
+    height: 100%;
+    font-family: 'Roboto-Light';
+  }
+  </style>
+</head>
+
+<body>
+  <script src="js/jquery-3.1.1.js"></script>
+  <div class="container d-flex justify-content-end">
+    <nav class="navbar navbar-toggleable-md navbar-light bg-faded" style="background-color: transparent;">
+      <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNavDropdown">
+        <a class="navbar-brand navbar-right" href="#">GreyOk</a>
+        <ul class="navbar-nav">
+          <li class="nav-item active">
+            <a class="nav-link" href="./killswitchhelper.html" style="font-family: 'Cinzel-Regular';">Kill Switch Helper</a>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="font-family: 'Cinzel-Regular';">
+              Tutorials
+            </a>
+            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink" style="background-color: #f8f8f8ff;">
+              <a class="dropdown-item" href="./simple-polkit-tutorial.html">Making a simple Polkit application in Vala and GTK+</a>
+              <a class="dropdown-item" href="#">Making a Polkit application in Vala and GTK+ with a helper</a>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </nav>
+  </div>
+
+	{{ content }}
+
+  <script src="js/tether.js"></script>
+  <script src="js/bootstrap.js"></script>
+
+  <!-- Prism syntax highlighter -->
+  <script src="js/prism.min.js"></script>
+</body>
+</html>
