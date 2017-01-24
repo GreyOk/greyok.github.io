@@ -720,7 +720,7 @@ title: Making a simple Polkit application in Vala and GTK+
         Source: https://code.launchpad.net/~your-launchpad-id/+junk/polkit-tutorial-packaging
 
         Files: build/* cmake/* src/* data/* debian/*
-        Copyright: 2013 Your Name <you@emailaddress.com>
+        Copyright: 2017 Your Name <you@emailaddress.com>
         License: GPL-3.0+
       </code>
       </pre>
@@ -768,6 +768,11 @@ title: Making a simple Polkit application in Vala and GTK+
       <strong>Trusty</strong>. But remember, if in the future you make use of the whole developing environment in this tutorial,
       you may end up using a function available only in vala vapi 0.34 which will render your program unbuildable under anyhting older than Zesty.</p>
       <br>
+      <p>Now, if you want to make your package available for Xenial, you need to go to your PPA packages, which can be found here:
+      <a href="https://code.launchpad.net/people/+me/+archive/ubuntu/ppa/+packages">https://code.launchpad.net/people/+me/+archive/ubuntu/ppa/+packages</a>
+      and click the option that says <strong>Copy packages</strong>. Then you select the <strong>Destination series</strong> to be Xenial and
+      the <strong>Copy options</strong> to <strong>Copy existing binaries</strong>. You wait for it to complete and then Xenial users will
+      be able to install your application.</p>
       <br>
       <!-- Packaging END -->
 

@@ -22,7 +22,7 @@ title: Kill Switch Helper
 
 <div class="container" style="margin-top: 20px;">
   <h1 style="font-family: Cinzel-Regular;" name="getIt"><a name="getIt" href="#getIt">🔗</a> Get it</h1>
-  <div class="col-md-6">
+  <div class="col-md-12">
       <div class="panel-group" id="accordion1">
           <div class="panel">
               <div class="panel-heading">
@@ -63,14 +63,50 @@ title: Kill Switch Helper
                       <a class="accordion-toggle collapsed" data-toggle="collapse" data-parent="#accordion1" href="#debianSynapticInstructions">
                         <div class="d-flex w-100 justify-content-between" style="padding-top:5px; padding-bottom:5px; padding-left: 10px; padding-right:10px;">
                           <h5 class="mb-1">Debian based distributions</h5>
-                          <small class="text-muted">Synaptic</small>
+                          <small class="text-muted">Synaptic Package Manager</small>
                         </div>
                       </a>
                   </h7>
               </div>
               <div id="debianSynapticInstructions" class="panel-collapse collapse" style="height: 0px;">
                   <div class="panel-body">
-                    Under construction
+                    <p style="padding-left:20px; padding-top: 10px;">Open the Synaptic Package Manager and go to the <strong>Repositories</strong> area.</p>
+                    <div class="d-flex justify-content-center">
+                      <img class="img-fluid" src="images/synaptic_step_1.png">
+                    </div>
+                    <div class="d-flex justify-content-center">
+                      <img class="img-fluid" src="images/synaptic_step_2.png">
+                    </div>
+                    <p style="padding-left:20px; padding-top: 10px;">Like in the picture above click <strong>New</strong>, choose
+                    <strong>Binary (deb)</strong> and paste in the <strong>URI</strong> field:</p>
+                    <div class="d-flex justify-content-center">
+                      <pre>
+                          <code class="language-markup">
+                            http://ppa.launchpad.net/eun-s/ppa/ubuntu/
+                          </code>
+                      </pre>
+                    </div>
+
+                    <p style="padding-left:20px; padding-top: 10px;">In the <strong>Distribution</strong> field, paste:</p>
+                    <div class="d-flex justify-content-center">
+                      <pre>
+                          <code class="language-markup">
+                            xenial
+                          </code>
+                      </pre>
+                    </div>
+                    <p style="padding-left:20px; padding-top: 10px;">And in the <strong>Section(s)</strong> field:</p>
+                    <div class="d-flex justify-content-center">
+                      <pre>
+                          <code class="language-markup">
+                            main
+                          </code>
+                      </pre>
+                    </div>
+                    <p style="padding-left:20px; padding-top: 10px;">Then click <strong>OK</strong>. If you want the source code too
+                    you follow the same steps again with the same information, but instead of choosing <strong>Binary (deb)</strong> from
+                    the dropdown, you choose <strong>Source (deb-src)</strong>. Finally, <strong>Reload</strong> the repositories
+                    and query for <strong>killswitchhelper</strong>. Then you can install it from there.</p>
                   </div>
               </div>
           </div>
@@ -127,12 +163,14 @@ title: Kill Switch Helper
                         </pre>
                       </li>
                     </ol>
-                    <p class="lead">Note that this source code comes with an uninstall script. To uninstall, while being in the <strong>build</strong>
+                    <p class="lead" style="padding-left:50px;">Note that this source code comes with an uninstall script. To uninstall, while being in the <strong>build</strong>
                       directory, execute the following command:
                     </p>
-                    <pre class="command-line" data-user="you" data-host="your-PC">
-                        <code class="language-batch">sudo make uninstall</code>
-                    </pre>
+                    <div style="padding-left:50px;">
+                      <pre class="command-line" data-user="you" data-host="your-PC">
+                          <code class="language-batch">sudo make uninstall</code>
+                      </pre>
+                    </div>
                   </div>
               </div>
           </div>
@@ -142,8 +180,8 @@ title: Kill Switch Helper
 
 <div class="container" style="margin-top: 10px;">
   <h1 style="font-family: Cinzel-Regular;"><a name="killswitchhelperAbout" href="#killswitchhelperAbout">🔗</a> About</h1>
-  <p class="lead">
-  An application to easily prepare a Kill Switch with a graphical interface.
+  <p class="lead" style="padding-left:50px;">
+    An application to easily prepare a Kill Switch with a graphical interface.
   </p>
 </div>
 
@@ -186,7 +224,7 @@ title: Kill Switch Helper
         <strong>make install</strong>, some files fail to install in their respective places. Try running <strong>make install</strong>
         again if it was that you installed using this method of compiling the source yourself.</li>
       <li>The route you are trying to add was not added because it could not be added according to routing rules - Some routes require a
-      netowrk route prefix to exist before adding them. That means that if you removed a route similar to this: <strong>192.168.1.1/24</strong> (note the slash),
+      netowrk route prefix to exist before adding them. That means that if you removed a route similar to this: <strong>192.168.1.0/24</strong> (note the slash),
       you won't be able to create a route to your default gateway. Try re-adding the network prefix route you eliminated before adding your default
       gateway back.</li>
       </ol>
