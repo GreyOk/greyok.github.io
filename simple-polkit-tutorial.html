@@ -785,5 +785,8 @@ title: Making a simple Polkit application in Vala and GTK+
 </div>
 
 <script "text/javascript">
-
+  $(window).scroll(function(){
+    $("#tableOfContent").stop().animate({"marginTop": ($(window).scrollTop()) + "px", "marginLeft":($(window).scrollLeft()) + "px"}, "slow" );
+    //$('#tableOfContent').css('top', $(this).scrollTop());
+  });
 </script>
